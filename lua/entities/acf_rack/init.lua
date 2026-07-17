@@ -791,7 +791,7 @@ function ENT:LoadAmmo()
 	self:GetOverlayText()
 
 	self:Think()
-	if IsValid(missile) and ACE_PointsInputChanged then
+	if missile and ACE_PointsInputChanged then
 		ACE_PointsInputChanged(self, "rack-preloaded", {
 			Ammo = true,
 			Firepower = true,
