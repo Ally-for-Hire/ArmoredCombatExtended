@@ -477,6 +477,14 @@ function ENT:ShootMissile()
 
 	self.Ready = false
 	self.NextFire = CT + self.FireDelay
+	if ACE_PointsInputChanged then
+		ACE_PointsInputChanged(self, "rack-missile-fired", {
+			Ammo = true,
+			Firepower = true,
+			ReadyRack = true,
+			Warning = true,
+		})
+	end
 end
 
 function ENT:Reload() --
@@ -524,6 +532,14 @@ function ENT:Reload() --
 		self.CurMissile = ValidCount + 1
 
 		Wire_TriggerOutput(self, "Shots Left", self.CurMissile)
+		if ACE_PointsInputChanged then
+			ACE_PointsInputChanged(self, "rack-missile-reloaded", {
+				Ammo = true,
+				Firepower = true,
+				ReadyRack = true,
+				Warning = true,
+			})
+		end
 	else
 		self.NextReload = CT + 5
 
@@ -775,7 +791,7 @@ function ENT:LoadAmmo()
 	self:GetOverlayText()
 
 	self:Think()
-	if ACE_PointsInputChanged then
+	if IsValid(missile) and ACE_PointsInputChanged then
 		ACE_PointsInputChanged(self, "rack-preloaded", {
 			Ammo = true,
 			Firepower = true,
