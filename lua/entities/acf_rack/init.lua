@@ -775,6 +775,14 @@ function ENT:LoadAmmo()
 	self:GetOverlayText()
 
 	self:Think()
+	if ACE_PointsInputChanged then
+		ACE_PointsInputChanged(self, "rack-preloaded", {
+			Ammo = true,
+			Firepower = true,
+			ReadyRack = true,
+			Warning = true,
+		})
+	end
 	return true
 
 end
@@ -802,6 +810,8 @@ function ENT:PreEntityCopy()
 end
 
 function ENT:PostEntityPaste( Player, Ent, CreatedEntities )
+	local pointSources = { self }
+	self._ACEPointsSuppress = true
 
 	if Ent.EntityMods and Ent.EntityMods.ACFAmmoLink and Ent.EntityMods.ACFAmmoLink.entities then
 		local AmmoLink = Ent.EntityMods.ACFAmmoLink
@@ -809,6 +819,7 @@ function ENT:PostEntityPaste( Player, Ent, CreatedEntities )
 			for _,AmmoID in pairs(AmmoLink.entities) do
 				local Ammo = CreatedEntities[ AmmoID ]
 				if Ammo and Ammo:IsValid() and Ammo:GetClass() == "acf_ammo" then
+					pointSources[#pointSources + 1] = Ammo
 					self:Link( Ammo )
 				end
 			end
@@ -816,8 +827,13 @@ function ENT:PostEntityPaste( Player, Ent, CreatedEntities )
 		Ent.EntityMods.ACFAmmoLink = nil
 	end
 
+	self._ACEPointsSuppress = nil
+
 	--Wire dupe info
 	self.BaseClass.PostEntityPaste( self, Player, Ent, CreatedEntities )
+	if ACE_PointsInputChanged then
+		ACE_PointsInputChanged(pointSources, "rack-links-pasted")
+	end
 
 end
 
@@ -975,9 +991,8 @@ function ENT:Link( Target )
 
 	self:SetOverlayText(txt)
 
-	if ACE_PointsInputChanged then
-		ACE_PointsInputChanged( self, "rack-ammo-linked" )
-		ACE_PointsInputChanged( Target, "rack-ammo-linked" )
+	if ACE_PointsInputChanged and not self._ACEPointsSuppress and (not Target or not Target._ACEPointsSuppress) then
+		ACE_PointsInputChanged({ self, Target }, "rack-ammo-linked")
 	end
 	return true, "Link successful!"
 
@@ -997,9 +1012,8 @@ function ENT:Unlink( Target )
 
 		self:GetOverlayText()
 
-		if ACE_PointsInputChanged then
-			ACE_PointsInputChanged( self, "rack-unlinked" )
-			ACE_PointsInputChanged( Target, "rack-unlinked" )
+		if ACE_PointsInputChanged and not self._ACEPointsSuppress and (not Target or not Target._ACEPointsSuppress) then
+			ACE_PointsInputChanged({ self, Target }, "rack-unlinked")
 		end
 		return true, "Unlink successful!"
 	else

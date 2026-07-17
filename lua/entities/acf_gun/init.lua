@@ -406,9 +406,8 @@ function ENT:Link( Target )
 		self.HasGunner = true
 		Target.LinkedGun = self
 
-		if ACE_PointsInputChanged then
-			ACE_PointsInputChanged( self, "gunner-linked" )
-			ACE_PointsInputChanged( Target, "gunner-linked" )
+		if ACE_PointsInputChanged and not self._ACEPointsSuppress and (not Target or not Target._ACEPointsSuppress) then
+			ACE_PointsInputChanged({ self, Target }, "gunner-linked")
 		end
 		return true, "Link successful!"
 
@@ -441,9 +440,8 @@ function ENT:Link( Target )
 		self.LoaderCount = self.LoaderCount + 1
 		Target.LinkedGun = self
 
-		if ACE_PointsInputChanged then
-			ACE_PointsInputChanged( self, "loader-linked" )
-			ACE_PointsInputChanged( Target, "loader-linked" )
+		if ACE_PointsInputChanged and not self._ACEPointsSuppress and (not Target or not Target._ACEPointsSuppress) then
+			ACE_PointsInputChanged({ self, Target }, "loader-linked")
 		end
 		return true, "Link successful!"
 
@@ -501,9 +499,8 @@ function ENT:Link( Target )
 		Wire_TriggerOutput( self, "Muzzle Weight", math.floor( Target.BulletData.ProjMass * 1000 ) )
 		Wire_TriggerOutput( self, "Muzzle Velocity", math.floor( Target.BulletData.MuzzleVel * ACF.VelScale ) )
 
-		if ACE_PointsInputChanged then
-			ACE_PointsInputChanged( self, "gun-ammo-linked" )
-			ACE_PointsInputChanged( Target, "gun-ammo-linked" )
+		if ACE_PointsInputChanged and not self._ACEPointsSuppress and (not Target or not Target._ACEPointsSuppress) then
+			ACE_PointsInputChanged({ self, Target }, "gun-ammo-linked")
 		end
 		return true, "Link successful!"
 
@@ -538,9 +535,8 @@ function ENT:Unlink( Target )
 	end
 
 	if Success then
-		if ACE_PointsInputChanged then
-			ACE_PointsInputChanged( self, "gun-unlinked" )
-			ACE_PointsInputChanged( Target, "gun-unlinked" )
+		if ACE_PointsInputChanged and not self._ACEPointsSuppress and (not Target or not Target._ACEPointsSuppress) then
+			ACE_PointsInputChanged({ self, Target }, "gun-unlinked")
 		end
 		return true, "Unlink successful!"
 	else
@@ -1212,6 +1208,8 @@ function ENT:PreEntityCopy()
 end
 
 function ENT:PostEntityPaste( Player, Ent, CreatedEntities )
+	local pointSources = { self }
+	self._ACEPointsSuppress = true
 
 	if Ent.EntityMods and Ent.EntityMods.ACFAmmoLink and Ent.EntityMods.ACFAmmoLink.entities then
 
@@ -1224,6 +1222,7 @@ function ENT:PostEntityPaste( Player, Ent, CreatedEntities )
 				local Ammo = CreatedEntities[ AmmoID ]
 
 				if IsValid(Ammo) then
+					pointSources[#pointSources + 1] = Ammo
 
 					if Ammo:GetClass() == "acf_ammo" then
 						self:Link( Ammo )
@@ -1241,6 +1240,11 @@ function ENT:PostEntityPaste( Player, Ent, CreatedEntities )
 		Ent.EntityMods.ACFAmmoLink = nil
 	end
 
+	self._ACEPointsSuppress = nil
+
 	--Wire dupe info
 	self.BaseClass.PostEntityPaste( self, Player, Ent, CreatedEntities )
+	if ACE_PointsInputChanged then
+		ACE_PointsInputChanged(pointSources, "gun-links-pasted")
+	end
 end
