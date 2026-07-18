@@ -66,7 +66,7 @@ function ACF_RegisterBullet(Index, Bullet)
 	ACF.Bullet[Index] = Bullet
 end
 
-local function UnregisterBullet(Index, Bullet)
+local function UnregisterBullet(Bullet)
 	local Slot = Bullet and Bullet.ActiveSlot
 	if not Slot then return end
 
@@ -170,7 +170,7 @@ function ACF_RemoveBullet( Index )
 	local Bullet = ACF.Bullet[Index]
 	ACF.Bullet[Index] = nil
 	if Bullet then
-		UnregisterBullet(Index, Bullet)
+		UnregisterBullet(Bullet)
 		if Bullet.OnRemoved then Bullet:OnRemoved() end
 	end
 

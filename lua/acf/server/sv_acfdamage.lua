@@ -168,10 +168,8 @@ function ACF_HEFindCritical(Hitpos, RadiusSq)
 	for _, Entity in ipairs(ACE.critEnts) do
 		if IsValid(Entity) then
 			local Distance = Hitpos:DistToSqr(Entity:GetPos())
-			if Distance <= RadiusSq then
-				if ACF_InsertNearestDamageCandidate(Targets, Distances, EntIndices, Entity, Distance, Limit) then
-					ACE.DamageQueryStats.CandidatesAccepted = ACE.DamageQueryStats.CandidatesAccepted + 1
-				end
+			if Distance <= RadiusSq and ACF_InsertNearestDamageCandidate(Targets, Distances, EntIndices, Entity, Distance, Limit) then
+				ACE.DamageQueryStats.CandidatesAccepted = ACE.DamageQueryStats.CandidatesAccepted + 1
 			end
 		end
 	end

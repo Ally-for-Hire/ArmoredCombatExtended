@@ -237,7 +237,7 @@ hook.Add("EntityRemoved", "ACE_EntRemoval", function(Ent)
 
 			elseif ACE.ExplosiveEnts[Eclass] then
 
-				for i, explosive in ipairs(ACE.Explosives) do
+				for _, explosive in ipairs(ACE.Explosives) do
 					if IsValid(explosive) and explosive == Ent then
 						ACE.RemoveExplosive(explosive)
 						--print("Explosive registered count: " .. #ACE.Explosives)
