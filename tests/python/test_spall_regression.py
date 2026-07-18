@@ -420,6 +420,7 @@ class SpallSourceContractTests(unittest.TestCase):
         source = BALLISTICS_SOURCE.read_text(encoding="utf-8")
         self.assertIn("function ACF_AcquireBullet(BulletData)", source)
         self.assertIn("return table.Copy(BulletData)", source)
+        self.assertIn("BulletData.Filter = BulletData.Filter or {}", source)
         self.assertIn("function ACF_RegisterBullet(Index, Bullet)", source)
         self.assertIn("local ActiveBullets = {}", source)
         self.assertIn("while Slot <= ActiveCount do", source)

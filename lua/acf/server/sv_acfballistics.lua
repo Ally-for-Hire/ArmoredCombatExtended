@@ -117,6 +117,7 @@ function ACF_CreateBullet( BulletData )
 		end
 	end
 
+	BulletData.Filter = BulletData.Filter or {}
 	table.insert(BulletData.Filter, BulletData.Gun)
 
 	BulletData.Index		= ACF.CurBulletIndex

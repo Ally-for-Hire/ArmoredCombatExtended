@@ -40,6 +40,7 @@ function ACFM_BulletLaunch(BulletData)
 
 	BulletData.FuseLength	= type(BulletData.FuseLength) == "number" and BulletData.FuseLength or 0
 
+	BulletData.Filter = BulletData.Filter or {}
 	table.insert(BulletData.Filter, BulletData.Gun)
 
 	BulletData.Index		= ACF.CurBulletIndex
