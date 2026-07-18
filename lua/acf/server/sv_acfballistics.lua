@@ -15,7 +15,6 @@ cvars.AddChangeCallback("sv_gravity", "ACE_BallisticsGravity", function(_, _, Va
 	ACF.BallisticsGravity = Gravity
 	ACF.BallisticsGravityVector = GravityVector
 end)
-local BulletPool = {}
 local ActiveBullets = {}
 local ActiveCount = 0
 local CurrentBallisticsFrame = 0
@@ -52,20 +51,7 @@ local function BallisticsDebug()
 end
 
 function ACF_AcquireBullet(BulletData)
-	local Bullet = table.remove(BulletPool) or {}
-	table.Empty(Bullet)
-
-	for Key, Value in pairs(BulletData) do
-		Bullet[Key] = Value
-	end
-
-	if BulletData.Filter then
-		Bullet.Filter = table.Copy(BulletData.Filter)
-	else
-		Bullet.Filter = {}
-	end
-
-	return Bullet
+	return table.Copy(BulletData)
 end
 
 function ACF_RegisterBullet(Index, Bullet)
@@ -186,7 +172,6 @@ function ACF_RemoveBullet( Index )
 	end
 
 	hook.Run("ACFOnBulletRemoved", Index, Bullet)
-	if Bullet then table.insert(BulletPool, Bullet) end
 end
 
 --[[------------------------------------------------------------------------------------------------

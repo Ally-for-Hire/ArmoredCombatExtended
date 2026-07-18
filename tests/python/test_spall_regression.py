@@ -419,7 +419,7 @@ class SpallSourceContractTests(unittest.TestCase):
     def test_ballistics_scheduler_uses_pooled_state_and_active_iteration(self):
         source = BALLISTICS_SOURCE.read_text(encoding="utf-8")
         self.assertIn("function ACF_AcquireBullet(BulletData)", source)
-        self.assertIn("local BulletPool = {}", source)
+        self.assertIn("return table.Copy(BulletData)", source)
         self.assertIn("function ACF_RegisterBullet(Index, Bullet)", source)
         self.assertIn("local ActiveBullets = {}", source)
         self.assertIn("while Slot <= ActiveCount do", source)
@@ -429,10 +429,7 @@ class SpallSourceContractTests(unittest.TestCase):
         self.assertIn("function ACE.GetBallisticsStats()", source)
         self.assertIn("function ACE.ResetBallisticsStats()", source)
         self.assertIn("hook.Run(\"ACFOnBulletRemoved\", Index, Bullet)", source)
-        self.assertLess(
-            source.index('hook.Run("ACFOnBulletRemoved", Index, Bullet)'),
-            source.index("table.insert(BulletPool, Bullet)", source.index('hook.Run("ACFOnBulletRemoved", Index, Bullet)')),
-        )
+        self.assertNotIn("BulletPool", source)
         self.assertNotIn("for Index,Bullet in pairs(ACF.Bullet) do", source)
         self.assertNotIn("ACF.Bullet[ACF.CurBulletIndex] = table.Copy(BulletData)", source)
 
