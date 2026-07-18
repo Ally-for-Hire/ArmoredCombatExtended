@@ -18,6 +18,7 @@ end)
 local ActiveBullets = {}
 local ActiveCount = 0
 local CurrentBallisticsFrame = 0
+ACE.BallisticsFrame = ACE.BallisticsFrame or 0
 
 ACE.BallisticsLimits = ACE.BallisticsLimits or {
 	VisibilityRetries = 50,
@@ -137,7 +138,8 @@ end
 function ACF_ManageBullets()
 
 	ACE.BallisticsStats.Frames = ACE.BallisticsStats.Frames + 1
-	CurrentBallisticsFrame = ACE.BallisticsStats.Frames
+	CurrentBallisticsFrame = CurrentBallisticsFrame + 1
+	ACE.BallisticsFrame = CurrentBallisticsFrame
 	if ActiveCount == 0 then return end
 	if ActiveCount > ACE.BallisticsStats.ActivePeak then ACE.BallisticsStats.ActivePeak = ActiveCount end
 
