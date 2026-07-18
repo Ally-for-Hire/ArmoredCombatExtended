@@ -611,7 +611,7 @@ local legacyACEFunctions = {
     "GetAmmoMaxPen", "GetArmorPoints", "GetBinaryInsertIndex", "GetConfigurableName", "GetContraptionEntities", "GetContraptionFromEntity", "GetContraptionIndex", "GetContraptionOwner",
     "GetCrewSeatPointCost", "GetDistanceTime", "GetEntPoints", "GetExplosiveMasses", "GetGunConfiguredRps", "GetGunFirepowerPoints", "GetGunFirepowerPointsFor", "GetGunFirepowerPricingLine",
     "GetGunFirepowerReadout", "GetMaterialData", "GetMaterialName", "GetMissileWarheadType", "GetOwnerName", "GetPoseModifiers", "GetPtsType", "GetRackConfiguredReloadTime",
-    "GetRateFloorLine", "GetRoundLethalityLine", "GetSurvivabilityIndex", "GetWeaponAnchorContraption", "GetWeaponUser", "HeatFromEngine", "HeatFromGearbox", "HeatFromGun",
+    "GetRateFloorLine", "GetRoundLethalityLine", "GetSurvivabilityIndex", "GetWeaponAnchorContraption", "GetWeaponUser", "GetBallisticsStats", "ResetBallisticsStats", "RemoveExplosive", "HeatFromEngine", "HeatFromGearbox", "HeatFromGun",
     "HeatFromRadar", "InDist", "InfraredHeatFromProp", "InitializeCrewseat", "IsAmmoMissileType", "IsEnt", "IsGLATGMAmmoType", "IsMissileEntity",
     "IsStandingPose", "IsValidCrewseatModel", "IsWireEntity", "LOSMultiTrace", "MakePrebuiltExplosive", "Manu_ArmorCost", "Manu_ContraptionCost", "Manu_CrewCost",
     "Manu_ElectronicsCost", "Manu_EngineCost", "Manu_EntCost", "Manu_GunCost", "Manu_RackCost", "Manu_RefillCost", "Manu_RoundCost", "MarkArmorDirty",
