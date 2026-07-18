@@ -143,7 +143,7 @@ function ACF_ManageBullets()
 	if ActiveCount == 0 then return end
 	if ActiveCount > ACE.BallisticsStats.ActivePeak then ACE.BallisticsStats.ActivePeak = ActiveCount end
 
-	local Frame = ACE.BallisticsStats.Frames
+	local Frame = CurrentBallisticsFrame
 	local Slot = 1
 	while Slot <= ActiveCount do
 		local Index = ActiveBullets[Slot]
