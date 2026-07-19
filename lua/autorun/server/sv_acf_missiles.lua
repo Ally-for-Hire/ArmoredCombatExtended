@@ -29,8 +29,6 @@ function ACFM_BulletLaunch(BulletData)
 		ACF.CurBulletIndex = 1
 	end
 
-	BulletData = ACF_AcquireBullet(BulletData)
-
 	--Those are BulletData settings that are global and shouldn't change round to round
 	BulletData.Gravity		= ACF.BallisticsGravity
 	BulletData.Accel		= ACF.BallisticsGravityVector
@@ -45,7 +43,8 @@ function ACFM_BulletLaunch(BulletData)
 
 	BulletData.Index		= ACF.CurBulletIndex
 	BulletData.ActiveFrame = ACE.BallisticsFrame
-	ACF_RegisterBullet(ACF.CurBulletIndex, BulletData)
+	local ActiveBullet = ACF_AcquireBullet(BulletData)
+	ACF_RegisterBullet(ACF.CurBulletIndex, ActiveBullet)
 	ACF_BulletClient( ACF.CurBulletIndex, ACF.Bullet[ACF.CurBulletIndex], "Init" , 0 )
 
 end

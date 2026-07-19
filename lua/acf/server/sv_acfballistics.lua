@@ -18,6 +18,8 @@ end)
 local ActiveBullets = {}
 local ActiveCount = 0
 local CurrentBallisticsFrame = 0
+local ManagingBullets = false
+local CurrentActiveSlot = 0
 ACE.BallisticsFrame = ACE.BallisticsFrame or 0
 
 ACE.BallisticsLimits = ACE.BallisticsLimits or {
@@ -74,6 +76,9 @@ local function UnregisterBullet(Bullet)
 	ActiveBullets[Slot] = LastIndex
 	ActiveBullets[ActiveCount] = nil
 	ActiveCount = ActiveCount - 1
+	if ManagingBullets and Slot < CurrentActiveSlot then
+		CurrentActiveSlot = Slot
+	end
 
 	local LastBullet = ACF.Bullet[LastIndex]
 	if LastBullet then LastBullet.ActiveSlot = Slot end
@@ -145,7 +150,9 @@ function ACF_ManageBullets()
 
 	local Frame = CurrentBallisticsFrame
 	local Slot = 1
+	ManagingBullets = true
 	while Slot <= ActiveCount do
+		CurrentActiveSlot = Slot
 		local Index = ActiveBullets[Slot]
 		local Bullet = ACF.Bullet[Index]
 		if Bullet and Bullet.ActiveFrame ~= Frame then
@@ -154,10 +161,14 @@ function ACF_ManageBullets()
 				ACF_CalcBulletFlight(Index, Bullet)
 			end
 		end
-		if ActiveBullets[Slot] == Index then
+		if CurrentActiveSlot < Slot then
+			Slot = CurrentActiveSlot
+		elseif ActiveBullets[Slot] == Index then
 			Slot = Slot + 1
 		end
 	end
+	ManagingBullets = false
+	CurrentActiveSlot = 0
 end
 hook.Remove( "Tick", "ACF_ManageBullets" )
 hook.Add("Tick", "ACF_ManageBullets", ACF_ManageBullets)

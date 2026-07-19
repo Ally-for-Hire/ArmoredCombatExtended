@@ -235,15 +235,6 @@ hook.Add("EntityRemoved", "ACE_EntRemoval", function(Ent)
 					end
 				end
 
-			elseif ACE.ExplosiveEnts[Eclass] then
-
-				for _, explosive in ipairs(ACE.Explosives) do
-					if IsValid(explosive) and explosive == Ent then
-						ACE.RemoveExplosive(explosive)
-						--print("Explosive registered count: " .. #ACE.Explosives)
-						break
-					end
-				end
 			elseif Eclass == "ace_crewseat_gunner" or Eclass == "ace_crewseat_loader" or Eclass == "ace_crewseat_driver" then
 				for i, crewseat in ipairs(ACE.radarEntities) do
 					if IsValid(crewseat) and crewseat == Ent then

@@ -105,36 +105,109 @@ ACE.CritEnts = {
 
 --I don't want HE processing every ent that it has in range
 local function ACF_InsertNearestDamageCandidate(Targets, Distances, EntIndices, Entity, Distance, Limit)
+	if Limit <= 0 then return false end
+
 	local Count = #Targets
 	local EntityIndex = Entity:EntIndex()
+
 	if Count >= Limit then
-		local LastDistance = Distances[Count]
-		local LastIndex = EntIndices[Count]
-		if LastDistance < Distance or (LastDistance == Distance and LastIndex <= EntityIndex) then return false end
+		local RootDistance = Distances[1]
+		local RootIndex = EntIndices[1]
+		if RootDistance < Distance or (RootDistance == Distance and RootIndex <= EntityIndex) then return false end
+
+		local At = 1
+		Targets[At] = Entity
+		Distances[At] = Distance
+		EntIndices[At] = EntityIndex
+
+		while true do
+			local Child = At * 2
+			if Child > Count then break end
+
+			local Right = Child + 1
+			if Right <= Count then
+				local LeftDistance = Distances[Child]
+				local RightDistance = Distances[Right]
+				local LeftIndex = EntIndices[Child]
+				local RightIndex = EntIndices[Right]
+				if RightDistance > LeftDistance or (RightDistance == LeftDistance and RightIndex > LeftIndex) then
+					Child = Right
+				end
+			end
+
+			local ChildDistance = Distances[Child]
+			local ChildIndex = EntIndices[Child]
+			if Distance > ChildDistance or (Distance == ChildDistance and EntityIndex >= ChildIndex) then break end
+
+			Targets[At] = Targets[Child]
+			Distances[At] = ChildDistance
+			EntIndices[At] = ChildIndex
+			At = Child
+		end
+
+		Targets[At] = Entity
+		Distances[At] = Distance
+		EntIndices[At] = EntityIndex
+		return true
+	else
+		local At = Count + 1
+		while At > 1 do
+			local Parent = math.floor(At / 2)
+			local ParentDistance = Distances[Parent]
+			local ParentIndex = EntIndices[Parent]
+			if ParentDistance > Distance or (ParentDistance == Distance and ParentIndex >= EntityIndex) then break end
+
+			Targets[At] = Targets[Parent]
+			Distances[At] = ParentDistance
+			EntIndices[At] = ParentIndex
+			At = Parent
+		end
+
+		Targets[At] = Entity
+		Distances[At] = Distance
+		EntIndices[At] = EntityIndex
+		return true
+	end
+end
+
+local function ACF_SortDamageCandidates(Targets, Distances, EntIndices)
+	local Count = #Targets
+
+	while Count > 1 do
+		Targets[1], Targets[Count] = Targets[Count], Targets[1]
+		Distances[1], Distances[Count] = Distances[Count], Distances[1]
+		EntIndices[1], EntIndices[Count] = EntIndices[Count], EntIndices[1]
+		Count = Count - 1
+
+		local At = 1
+		while true do
+			local Child = At * 2
+			if Child > Count then break end
+
+			local Right = Child + 1
+			if Right <= Count then
+				local LeftDistance = Distances[Child]
+				local RightDistance = Distances[Right]
+				local LeftIndex = EntIndices[Child]
+				local RightIndex = EntIndices[Right]
+				if RightDistance > LeftDistance or (RightDistance == LeftDistance and RightIndex > LeftIndex) then
+					Child = Right
+				end
+			end
+
+			local AtDistance = Distances[At]
+			local AtIndex = EntIndices[At]
+			local ChildDistance = Distances[Child]
+			local ChildIndex = EntIndices[Child]
+			if AtDistance > ChildDistance or (AtDistance == ChildDistance and AtIndex >= ChildIndex) then break end
+
+			Targets[At], Targets[Child] = Targets[Child], Targets[At]
+			Distances[At], Distances[Child] = Distances[Child], Distances[At]
+			EntIndices[At], EntIndices[Child] = EntIndices[Child], EntIndices[At]
+			At = Child
+		end
 	end
 
-	local InsertAt = math.min(Count + 1, Limit)
-	if Count >= Limit then
-		Targets[InsertAt] = Entity
-		Distances[InsertAt] = Distance
-		EntIndices[InsertAt] = EntityIndex
-	end
-
-	while InsertAt > 1 do
-		local Previous = InsertAt - 1
-		local PreviousDistance = Distances[Previous]
-		local PreviousIndex = EntIndices[Previous]
-		if PreviousDistance < Distance or (PreviousDistance == Distance and PreviousIndex <= EntityIndex) then break end
-		Targets[InsertAt] = Targets[Previous]
-		Distances[InsertAt] = PreviousDistance
-		EntIndices[InsertAt] = PreviousIndex
-		InsertAt = Previous
-	end
-
-	Targets[InsertAt] = Entity
-	Distances[InsertAt] = Distance
-	EntIndices[InsertAt] = EntityIndex
-	return true
 end
 
 function ACF_HEFind( Hitpos, Radius )
@@ -154,6 +227,7 @@ function ACF_HEFind( Hitpos, Radius )
 		end
 	end
 
+	ACF_SortDamageCandidates(Targets, Distances, EntIndices)
 	return Targets
 end
 
@@ -174,6 +248,7 @@ function ACF_HEFindCritical(Hitpos, RadiusSq)
 		end
 	end
 
+	ACF_SortDamageCandidates(Targets, Distances, EntIndices)
 	return Targets
 end
 
@@ -1569,45 +1644,49 @@ do
 
 		while Search do
 			local RemainingCandidates = ACE.DamageQueryLimits.ExplosionCandidates - ExplosionCandidateCount
+
 			local CExplosives = {}
 			local PendingExplosives = {}
 			local PendingDistances = {}
 			local PendingIndices = {}
-			local NewExplosives = {}
-			local NewDistances = {}
-			local NewIndices = {}
-			local PendingCount = 0
+			local FreshExplosives = {}
+			local FreshDistances = {}
+			local FreshIndices = {}
 
 			for Found in pairs(ExplosionPending) do
 				if IsValid(Found) and not Found.Exploding and Found:GetPos():DistToSqr(Pos) <= RadiusSq then
-					PendingCount = PendingCount + 1
+					local EOwner = Found:CPPIGetOwner() or NULL
+					if Owner == EOwner then
+						local Distance = Found:GetPos():DistToSqr(Pos)
+						ACF_InsertNearestDamageCandidate(PendingExplosives, PendingDistances, PendingIndices, Found, Distance, ACE.DamageQueryLimits.ExplosionCandidates)
+					else
+						ExplosionPending[Found] = nil
+					end
 				end
 			end
-
-			for Found in pairs(ExplosionPending) do
-				if IsValid(Found) and not Found.Exploding and Found:GetPos():DistToSqr(Pos) <= RadiusSq then
-					local Distance = Found:GetPos():DistToSqr(Pos)
-					ACF_InsertNearestDamageCandidate(PendingExplosives, PendingDistances, PendingIndices, Found, Distance, PendingCount)
-				end
-			end
+			ACF_SortDamageCandidates(PendingExplosives, PendingDistances, PendingIndices)
 
 			if RemainingCandidates > 0 then
 				ACE.DamageQueryStats.CandidateQueries = ACE.DamageQueryStats.CandidateQueries + 1
 				for _, Found in ipairs(ACE.Explosives) do
-					if not IsValid(Found) or Found.Exploding or ExplosionSeen[Found] or Found:GetPos():DistToSqr(Pos) > RadiusSq then continue end
+					if not IsValid(Found) or Found.Exploding or ExplosionSeen[Found] or ExplosionPending[Found] then continue end
 					local Distance = Found:GetPos():DistToSqr(Pos)
-					ACF_InsertNearestDamageCandidate(NewExplosives, NewDistances, NewIndices, Found, Distance, RemainingCandidates)
+					if Distance > RadiusSq then continue end
+					local EOwner = Found:CPPIGetOwner() or NULL
+					if Owner ~= EOwner then continue end
+					ACF_InsertNearestDamageCandidate(FreshExplosives, FreshDistances, FreshIndices, Found, Distance, RemainingCandidates)
 				end
 			end
+			ACF_SortDamageCandidates(FreshExplosives, FreshDistances, FreshIndices)
 
 			local PendingAt = 1
-			local NewAt = 1
-			while PendingAt <= #PendingExplosives or NewAt <= #NewExplosives do
-				local UsePending = NewAt > #NewExplosives
+			local FreshAt = 1
+			while PendingAt <= #PendingExplosives or FreshAt <= #FreshExplosives do
+				local UsePending = FreshAt > #FreshExplosives
 				if not UsePending and PendingAt <= #PendingExplosives then
-					UsePending = PendingDistances[PendingAt] < NewDistances[NewAt]
-					if PendingDistances[PendingAt] == NewDistances[NewAt] then
-						UsePending = PendingIndices[PendingAt] <= NewIndices[NewAt]
+					UsePending = PendingDistances[PendingAt] < FreshDistances[FreshAt]
+					if PendingDistances[PendingAt] == FreshDistances[FreshAt] then
+						UsePending = PendingIndices[PendingAt] <= FreshIndices[FreshAt]
 					end
 				end
 
@@ -1615,8 +1694,8 @@ do
 					CExplosives[#CExplosives + 1] = PendingExplosives[PendingAt]
 					PendingAt = PendingAt + 1
 				else
-					CExplosives[#CExplosives + 1] = NewExplosives[NewAt]
-					NewAt = NewAt + 1
+					CExplosives[#CExplosives + 1] = FreshExplosives[FreshAt]
+					FreshAt = FreshAt + 1
 				end
 			end
 
@@ -1808,6 +1887,7 @@ do
 				Search = true
 				LastHE = HEWeight
 				Radius = ACE.CalculateHERadius( HEWeight )
+				RadiusSq = Radius ^ 2
 				DebugExplosion("ExplodePos:RadiusUpdate", "TotalHE", HEWeight, "Radius", Radius)
 			else
 				Search = false
