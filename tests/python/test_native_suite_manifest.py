@@ -20,10 +20,13 @@ class NativeSuiteManifestTests(unittest.TestCase):
         suites = {path.name for path in NATIVE_ROOT.glob("*.lua")}
         required = {
             "000_discovery_canary.lua",
+            "armor_spall_corpus.lua",
+            "dupe_spawn.lua",
             "entity_registration.lua",
             "general_use_contracts.lua",
             "invalidation_hooks.lua",
             "registries.lua",
+            "spall_rubber.lua",
         }
         self.assertTrue(required <= suites)
 

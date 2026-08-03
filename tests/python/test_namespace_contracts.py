@@ -64,6 +64,5 @@ class NamespaceContractTests(unittest.TestCase):
         findings = find_mutable_filter_aliases(sources)
         self.assertEqual([], findings, "caller-owned filter aliases: %s" % findings)
 
-
 if __name__ == "__main__":
     unittest.main()
